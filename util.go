@@ -137,7 +137,7 @@ func renderHisto(forecastByHours []HourTemp) string {
 	}
 	for _, temp := range temperatures {
 		reduceValue := int((temp - minTemp) / (maxTemp - minTemp) * maxGradation)
-		result = result + HistoChars[reduceValue]
+		result += HistoChars[reduceValue]
 	}
 
 	return result
