@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"runtime"
@@ -179,7 +178,8 @@ func getWeather(cfg Config) (map[string]interface{}, []HourTemp, []DayForecast) 
 		// now block
 		data, err := doc.GetDataFirst(Selectors)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
 		}
 
 		reRemoveDesc := regexp.MustCompile(`^.+\s*:\s*`)
@@ -206,7 +206,8 @@ func getWeather(cfg Config) (map[string]interface{}, []HourTemp, []DayForecast) 
 		// forecast for next days block
 		dataNextDays, err := doc.GetData(SelectorsNextDays)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
 		}
 
 		if dateColumn, ok := dataNextDays["date"]; ok {
@@ -379,7 +380,8 @@ func render(forecastNow map[string]interface{}, forecastByHours []HourTemp, fore
 		}
 
 	} else {
-		fmt.Printf("City %q not found\n", cfg.city)
+		fmt.Fprintf(os.Stderr, "City %q not found\n", cfg.city)
+		os.Exit(1)
 	}
 }
 
