@@ -169,22 +169,16 @@ func getWeather(cfg Config) (map[string]interface{}, []HourTemp, []DayForecast) 
 	forecastNext := []DayForecast{}
 	forecastByHours := []HourTemp{}
 
-	var wg sync.WaitGroup
-	wg.Add(2)
+	reRemoveDesc := regexp.MustCompile(`^.+\s*:\s*`)
+	reRemoveMultiline := regexp.MustCompile(`\n.+$`)
+	reDate := regexp.MustCompile(`^\d{4}-\d{2}-\d{2}`)
 
-	go func() {
-		doc := html2data.FromURL(cfg.baseURL+cfg.city, html2data.URLCfg{UA: UserAgent})
-
-		// now block
+	var extractNowForecast = func(doc html2data.Doc) {
 		data, err := doc.GetDataFirst(Selectors)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-
-		reRemoveDesc := regexp.MustCompile(`^.+\s*:\s*`)
-		reRemoveMultiline := regexp.MustCompile(`\n.+$`)
-		reDate := regexp.MustCompile(`^\d{4}-\d{2}-\d{2}`)
 
 		for name := range Selectors {
 			forecastNow[name] = clearNonprintInString(data[name])
@@ -202,8 +196,9 @@ func getWeather(cfg Config) (map[string]interface{}, []HourTemp, []DayForecast) 
 				forecastNow[name] = "0 м/с"
 			}
 		}
-
-		// forecast for next days block
+	}
+	
+	var extractNextForecast = func(doc html2data.Doc) {
 		dataNextDays, err := doc.GetData(SelectorsNextDays)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -256,7 +251,15 @@ func getWeather(cfg Config) (map[string]interface{}, []HourTemp, []DayForecast) 
 				}
 			}
 		}
+	}
 
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		doc := html2data.FromURL(cfg.baseURL+cfg.city, html2data.URLCfg{UA: UserAgent})
+		extractNowForecast(doc)
+		extractNextForecast(doc)
 		wg.Done()
 	}()
 
