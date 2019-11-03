@@ -24,7 +24,7 @@ var weekdaysRu = [...]string{
 
 //-----------------------------------------------------------------------------
 // formatDates gets date in json and human format
-func formatDates(date time.Time) (formatDate string, JSONDate string) {
+func formatDates(date time.Time) (formatDate string, jsonDate string) {
 	return date.Format("02.01") + " (" + weekdaysRu[date.Weekday()] + ")",
 		date.Format("2006-01-02")
 }
