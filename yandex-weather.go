@@ -304,7 +304,6 @@ func render(forecastNow map[string]interface{}, forecastByHours []HourTemp, fore
 	outWriter := getColorWriter(cfg.noColor)
 
 	if cfg.getJSON {
-
 		if !cfg.noToday && len(forecastByHours) > 0 {
 			forecastNow["by_hours"] = forecastByHours
 		}
@@ -316,7 +315,6 @@ func render(forecastNow map[string]interface{}, forecastByHours []HourTemp, fore
 		jsonBytes, _ := json.Marshal(forecastNow)
 		fmt.Println(string(jsonBytes))
 		return
-
 	}
 
 	outWriter.Printf(cfg.ansiColourString("%s (<yellow>%s</>)\n"), cityFromPage, cfg.baseURL+cfg.city)

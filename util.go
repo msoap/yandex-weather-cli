@@ -102,7 +102,6 @@ func renderHisto(forecastByHours []HourTemp) string {
 	interpolationFact := 4
 	temperatures := make([]float64, len(forecastByHours)*interpolationFact)
 	for i, row := range forecastByHours {
-
 		currTemp := float64(row.Temp)
 		nextI := i + 1
 		if i == len(forecastByHours)-1 {
