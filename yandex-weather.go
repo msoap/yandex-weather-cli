@@ -315,8 +315,9 @@ func render(forecastNow map[string]interface{}, forecastByHours []HourTemp, fore
 
 		jsonBytes, _ := json.Marshal(forecastNow)
 		fmt.Println(string(jsonBytes))
+		return
 
-	} else {
+	} 
 
 		outWriter.Printf(cfg.ansiColourString("%s (<yellow>%s</>)\n"), cityFromPage, cfg.baseURL+cfg.city)
 		outWriter.Printf(
@@ -381,7 +382,6 @@ func render(forecastNow map[string]interface{}, forecastByHours []HourTemp, fore
 				)
 			}
 		}
-	}
 }
 
 //-----------------------------------------------------------------------------
