@@ -111,6 +111,13 @@ var ICONS = map[string]string{
 }
 
 //-----------------------------------------------------------------------------
+// check if program's output used in *nix pipe
+func outputIsPiped() bool {
+	stdoutStat, err := os.Stdout.Stat()
+	return err != nil || (stdoutStat.Mode()&os.ModeCharDevice) == 0
+}
+
+//-----------------------------------------------------------------------------
 // get command line parameters
 func getParams() (cfg Config) {
 	flag.BoolVar(&cfg.getJSON, "json", false, "get JSON")
@@ -138,11 +145,8 @@ func getParams() (cfg Config) {
 	if runtime.GOOS == "windows" {
 		// broken unicode symbols in cmd.exe and don't detect pipe
 		cfg.noToday = true
-	} else {
-		// detect pipe
-		if stdoutStat, err := os.Stdout.Stat(); err != nil || (stdoutStat.Mode()&os.ModeCharDevice) == 0 {
-			cfg.noColor = true
-		}
+	} else if outputIsPiped() {
+		cfg.noColor = true
 	}
 
 	if baseURL := os.Getenv(EnvBaseURLName); len(baseURL) > 0 {
