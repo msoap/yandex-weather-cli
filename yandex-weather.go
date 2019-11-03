@@ -317,71 +317,71 @@ func render(forecastNow map[string]interface{}, forecastByHours []HourTemp, fore
 		fmt.Println(string(jsonBytes))
 		return
 
-	} 
+	}
 
-		outWriter.Printf(cfg.ansiColourString("%s (<yellow>%s</>)\n"), cityFromPage, cfg.baseURL+cfg.city)
-		outWriter.Printf(
-			cfg.ansiColourString("Сейчас: <green>%d °C</> - <green>%s</>\n"),
-			forecastNow["term_now"],
-			forecastNow["desc_now"],
+	outWriter.Printf(cfg.ansiColourString("%s (<yellow>%s</>)\n"), cityFromPage, cfg.baseURL+cfg.city)
+	outWriter.Printf(
+		cfg.ansiColourString("Сейчас: <green>%d °C</> - <green>%s</>\n"),
+		forecastNow["term_now"],
+		forecastNow["desc_now"],
+	)
+
+	outWriter.Printf(cfg.ansiColourString("Давление: <green>%s</>\n"), forecastNow["pressure"])
+	outWriter.Printf(cfg.ansiColourString("Влажность: <green>%s</>\n"), forecastNow["humidity"])
+	outWriter.Printf(cfg.ansiColourString("Ветер: <green>%s</>\n"), forecastNow["wind"])
+
+	if !cfg.noToday && len(forecastByHours) > 0 {
+		textByHour := [4]string{}
+		for _, item := range forecastByHours {
+			textByHour[0] += fmt.Sprintf("%3d ", item.Hour)
+			textByHour[2] += fmt.Sprintf("%3d°", item.Temp)
+			icon, exists := ICONS[item.Icon]
+			if !exists {
+				icon = " "
+			}
+			textByHour[3] += fmt.Sprintf(cfg.ansiColourString("<blue>%3s</blue> "), icon)
+		}
+		textByHour[1] = cfg.ansiColourString("<grey+h>" + renderHisto(forecastByHours) + "</>")
+
+		outWriter.Println(strings.Repeat("─", len(forecastByHours)*4))
+		outWriter.Printf("%s\n%s\n%s\n%s\n",
+			cfg.ansiColourString("<grey+h>"+textByHour[0]+"</>"),
+			textByHour[1],
+			textByHour[2],
+			textByHour[3],
 		)
+	}
 
-		outWriter.Printf(cfg.ansiColourString("Давление: <green>%s</>\n"), forecastNow["pressure"])
-		outWriter.Printf(cfg.ansiColourString("Влажность: <green>%s</>\n"), forecastNow["humidity"])
-		outWriter.Printf(cfg.ansiColourString("Ветер: <green>%s</>\n"), forecastNow["wind"])
-
-		if !cfg.noToday && len(forecastByHours) > 0 {
-			textByHour := [4]string{}
-			for _, item := range forecastByHours {
-				textByHour[0] += fmt.Sprintf("%3d ", item.Hour)
-				textByHour[2] += fmt.Sprintf("%3d°", item.Temp)
-				icon, exists := ICONS[item.Icon]
-				if !exists {
-					icon = " "
-				}
-				textByHour[3] += fmt.Sprintf(cfg.ansiColourString("<blue>%3s</blue> "), icon)
-			}
-			textByHour[1] = cfg.ansiColourString("<grey+h>" + renderHisto(forecastByHours) + "</>")
-
-			outWriter.Println(strings.Repeat("─", len(forecastByHours)*4))
-			outWriter.Printf("%s\n%s\n%s\n%s\n",
-				cfg.ansiColourString("<grey+h>"+textByHour[0]+"</>"),
-				textByHour[1],
-				textByHour[2],
-				textByHour[3],
-			)
+	if len(forecastNext) > 0 {
+		descLength := getMaxLengthDesc(forecastNext)
+		if descLength < TodayForecastTableWidth {
+			// align with today forecast
+			descLength = TodayForecastTableWidth
 		}
 
-		if len(forecastNext) > 0 {
-			descLength := getMaxLengthDesc(forecastNext)
-			if descLength < TodayForecastTableWidth {
-				// align with today forecast
-				descLength = TodayForecastTableWidth
-			}
+		outWriter.Println(strings.Repeat("─", 27+descLength))
+		outWriter.Printf(
+			cfg.ansiColourString("<blue+h> %-10s %4s %-*s %8s</>\n"),
+			"дата",
+			"°C",
+			descLength, "погода",
+			"°C ночью",
+		)
+		outWriter.Println(strings.Repeat("─", 27+descLength))
 
-			outWriter.Println(strings.Repeat("─", 27+descLength))
+		weekendRe := regexp.MustCompile(`(сб|вс)`)
+		for _, row := range forecastNext {
+			date := weekendRe.ReplaceAllString(row.DateHuman, cfg.ansiColourString("<red+h>$1</>"))
 			outWriter.Printf(
-				cfg.ansiColourString("<blue+h> %-10s %4s %-*s %8s</>\n"),
-				"дата",
-				"°C",
-				descLength, "погода",
-				"°C ночью",
+				" %10s %3d° %-*s %7d°\n",
+				date,
+				row.Temp,
+				descLength,
+				row.Desc,
+				row.TempNight,
 			)
-			outWriter.Println(strings.Repeat("─", 27+descLength))
-
-			weekendRe := regexp.MustCompile(`(сб|вс)`)
-			for _, row := range forecastNext {
-				date := weekendRe.ReplaceAllString(row.DateHuman, cfg.ansiColourString("<red+h>$1</>"))
-				outWriter.Printf(
-					" %10s %3d° %-*s %7d°\n",
-					date,
-					row.Temp,
-					descLength,
-					row.Desc,
-					row.TempNight,
-				)
-			}
 		}
+	}
 }
 
 //-----------------------------------------------------------------------------
